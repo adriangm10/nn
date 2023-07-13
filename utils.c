@@ -31,6 +31,15 @@ void mat_fill(Mat m, float x){
     }
 }
 
+/// return a row with a pointer to the row @row of the matrix @m
+Row mat_row(Mat m, size_t row){
+    assert(row < m.rows);
+    return (Row) {
+        .cols = m.cols,
+        .elems = &m.elems[row * m.cols]
+    };
+}
+
 void free_mat(Mat *m){
     m->rows = 0;
     m->cols = 0;

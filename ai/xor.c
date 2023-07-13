@@ -5,9 +5,9 @@
 #define error(msg) {fprintf(stderr, "%s", msg); exit(EXIT_FAILURE);}
 #define WIDTH 800
 #define HEIGHT WIDTH
-#define RED {255, 0, 0}
-#define WHITE {255, 255, 255}
-#define ORANGE {255, 128, 0}
+#define RED {255, 0, 0, SDL_ALPHA_OPAQUE}
+#define WHITE {255, 255, 255, SDL_ALPHA_OPAQUE}
+#define ORANGE {255, 128, 0, SDL_ALPHA_OPAQUE}
 
 // const int MAX_EPOCHS = __INT_MAX__ / 100;
 #define MAX_EPOCHS 1000 * 100
@@ -45,15 +45,14 @@ int main(void){
         error(TTF_GetError());
     }
 
-    SDL_Window *win = SDL_CreateWindow("chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED | SDL_WINDOW_RESIZABLE, WIDTH, HEIGHT, 0);
+    SDL_Window *win = SDL_CreateWindow("xor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, 0);
     SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE); // SDL_RENDERER_ACCELERATED
 
 
 
     size_t xor_arch[] = {2, 2, 1};
-    size_t or_arch[] = {2, 1};
     float lr = 1.0f;
-    float xor_cost, or_cost;
+    float xor_cost;
 
     NN xor_nn = nn_alloc(xor_arch, ARRAY_LEN(xor_arch), SIGMOID);
     rand_nn(xor_nn, 0.0f, 1.0f);
@@ -68,10 +67,6 @@ int main(void){
         }
     }
 
-    int from = 1;
-    int to = 2;
-    Mat t = charge_mnist(1, &to);
-
     SDL_Rect plot_rect = {
         .x = WIDTH / 4,
         .y = HEIGHT / 4,
@@ -84,7 +79,7 @@ int main(void){
     loss.fc = (SDL_Color) WHITE;
     loss.pc = (SDL_Color) ORANGE;
 
-    int running = 1;
+    bool running = true;
     uint i = 0;
     while (running) {
         SDL_Event event;
@@ -92,7 +87,7 @@ int main(void){
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT:
-                    running = 0;
+                    running = false;
                     break;
             }
         }

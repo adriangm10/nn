@@ -60,6 +60,7 @@ void print_mat(Mat m){
     }
 }
 
+//[from, to]
 Mat mat_nrows(Mat m, size_t row_from, size_t row_to){
     assert(row_from <= row_to && row_to < m.rows);
     return (Mat){
@@ -112,15 +113,6 @@ Mat row_as_mat(Row r){
         .cols = r.cols,
         .rows = 1,
         .elems = r.elems,
-    };
-}
-
-/// return a row with a pointer to the row @row of the matrix @m
-Row mat_row(Mat m, size_t row){
-    assert(row < m.rows);
-    return (Row) {
-        .cols = m.cols,
-        .elems = &m.elems[row * m.cols]
     };
 }
 
@@ -276,7 +268,9 @@ void nn_train(NN nn, size_t batch_size, Mat t, float lr, float *cost){
     for(size_t i = 0; i < t.rows; i += batch_size){
         size_t to = i + batch_size - 1 > t.rows ? t.rows - 1: i + batch_size - 1;
         Mat batch = mat_nrows(t, i, to);
+        // printf("%zu, %zu, %zu\n", t.rows, i, to);
         // print_mat(batch);
+        // printf("\n");
 
         NN g = nn_backprop(nn, batch);
         nn_learn(nn, g, lr);

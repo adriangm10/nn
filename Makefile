@@ -2,24 +2,33 @@
 
 CC = gcc
 
-FLAGS = -O2 -Wall -Wextra -ggdb `sdl2-config --libs --cflags` -lSDL2_ttf -lm
+FLAGS = -O2 -Wall -Wextra -ggdb `sdl2-config --libs --cflags` -lSDL2_ttf -lm -lpthread
 
 HDRS = nn.h nnshow.h mnist.h utils.h
 
-SRCS = nn.c ai/xor.c nnshow.c utils.c mnist.c
+SRCS = nn.c nnshow.c utils.c mnist.c
 
 OBJS = ${SRCS:.c=.o}
 
-EXEC = xor
+EXECMNIST = mnist
+EXECXOR = xor
 
-${EXEC}: ${OBJS} ${HDRS} Makefile
-	${CC} -o $@ ${OBJS} ${FLAGS}
+all: xor mnist
+
+${EXECXOR}: ${OBJS} ${HDRS} Makefile
+${EXECMNIST}: ${OBJS} ${HDRS} Makefile
+
+xor: ai/xor.c
+		${CC} -o $@ ${OBJS} ai/xor.c ${MAINXOR} ${FLAGS}
+
+mnist: ai/mnist_ai.c
+		${CC} -o $@ ${OBJS} ai/mnist_ai.c ${MAINMNIST} ${FLAGS}
+
 
 # ${OBJS}: ${@:.o=.c} ${HDRS} Makefile
 #  	${CC} -o $@ ${:.o=-c} -c ${FLAGS}
 
 clean:
-	rm -f ${EXEC} ${OBJS}
+	rm -f ${OBJS} ${EXECMNIST} ${EXECXOR}
 
-all: ${EXEC}
 

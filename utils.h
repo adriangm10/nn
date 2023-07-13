@@ -23,6 +23,7 @@ typedef struct {
 extern Mat mat_alloc(size_t rows, size_t cols);
 extern void mul_mat(Mat m1, Mat m2, Mat out);
 extern void mat_fill(Mat m, float x);
+extern Row mat_row(Mat m, size_t row);
 extern void free_mat(Mat *m);
 
 extern Row row_alloc(size_t cols);

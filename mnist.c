@@ -11,11 +11,11 @@ int reverse_int(int i){
     return (int) ((c1 << 24) | (c2 << 16) | (c3 << 8) | c4);
 }
 
-// [from, to)
-// starts counting from 0
+// [from, to]
+// starts counting from 1
 // if to = -1, take from @from to the end
 void read_labels(char *file_name, Mat t, int from, int *to){
-    assert(t.cols == IMG_SIZE + 1 && (from < *to || *to == -1) && from >= 1);
+    assert(t.cols == IMG_SIZE + 10 && (from < *to || *to == -1) && from >= 1);
     int magic_number, fd, n;
 
     fd = open(file_name, O_RDONLY);
@@ -34,10 +34,12 @@ void read_labels(char *file_name, Mat t, int from, int *to){
     assert(*to - from <= t.rows);
     lseek(fd, (from - 1) * sizeof(unsigned char), SEEK_CUR);
 
-    for(int i = 0; i < *to - from; i++){
+    for(int i = 0; i < *to - from + 1; i++){
         unsigned char temp;
         read(fd, &temp, sizeof(unsigned char));
-        MAT_AT(t, i, t.cols - 1) = (float) temp;
+        Row lbl_row = row_slice(mat_row(t, i), t.cols - 10, t.cols - 1);
+        row_fill(lbl_row, 0.0f);
+        ROW_AT(lbl_row, temp) = 1.0f;
     }
 
     close(fd);
@@ -47,7 +49,7 @@ void read_labels(char *file_name, Mat t, int from, int *to){
 // starts counting from 1
 // if to = -1, take from @from to the end
 void read_imgs(char *file_name, Mat t, int from, int *to){
-    assert(t.cols == IMG_SIZE + 1 && (from < *to || *to == -1) && from >= 1);
+    assert(t.cols == IMG_SIZE + 10 && (from < *to || *to == -1) && from >= 1);
     int magic_number, fd, n, rows, cols;
 
     fd = open(file_name, O_RDONLY);
@@ -73,7 +75,7 @@ void read_imgs(char *file_name, Mat t, int from, int *to){
     assert(*to - from <= t.rows);
     lseek(fd, (from - 1) * IMG_SIZE * sizeof(unsigned char), SEEK_CUR);
 
-    for(int i = 0; i < *to - from; ++i){
+    for(int i = 0; i < *to - from + 1; ++i){
         for(int j = 0; j < rows; ++j){
             for(int k = 0; k < cols; ++k){
                 unsigned char temp;
@@ -86,11 +88,13 @@ void read_imgs(char *file_name, Mat t, int from, int *to){
     close(fd);
 }
 
-// [from, to)
+// [from, to]
 // starts counting from 1
 // if to = -1, take from @from to the end
 Mat charge_mnist(int from, int *to){
-    Mat t = mat_alloc(*to - from, IMG_SIZE + 1);
+    assert(*to >= -1);
+    if(*to == -1 || *to > MAX_TRAIN) *to = MAX_TRAIN;
+    Mat t = mat_alloc(*to - from + 1, IMG_SIZE + 10);
     read_labels(TRAIN_LBLS, t, from, to);
     read_imgs(TRAIN_IMGS, t, from, to);
     return t;
@@ -100,7 +104,8 @@ Mat charge_mnist(int from, int *to){
 // starts counting from 1
 // if to = -1, take from @from to the end
 Mat charge_mnist_test(int from, int *to){
-    Mat t = mat_alloc(*to - from, IMG_SIZE + 1);
+    if(*to == -1 || *to > MAX_TEST) *to = MAX_TEST;
+    Mat t = mat_alloc(*to - from + 1, IMG_SIZE + 10);
     read_labels(TEST_LBLS, t, from, to);
     read_imgs(TEST_IMGS, t, from, to);
     return t;
@@ -109,7 +114,7 @@ Mat charge_mnist_test(int from, int *to){
 // int main(void){
 //     int from = 1;
 //     int to = 5;
-//     Mat t = mat_alloc(to - from, IMG_SIZE + 1);
+//     Mat t = mat_alloc(to - from, IMG_SIZE + 10);
 //     read_imgs(TRAIN_IMGS, t, from, &to);
 //     read_labels(TRAIN_LBLS, t, from, &to);
 // 
@@ -120,7 +125,7 @@ Mat charge_mnist_test(int from, int *to){
 //             }
 //             printf("\n");
 //         }
-//         printf("%f\n", MAT_AT(t, k, t.cols - 1));
+//         print_row(row_slice(mat_row(t, k), t.cols - 10, t.cols - 1), "\n");
 //     }
 // 
 //     free_mat(&t);

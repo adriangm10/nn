@@ -38,26 +38,18 @@ extern float act_fun(float x, actf_t af);
 extern float dactf(float y, actf_t af);
 extern void act_row(Row r, actf_t af);
 
-// extern Mat mat_alloc(size_t rows, size_t cols);
-// extern void mul_mat(Mat m1, Mat m2, Mat out);
 extern void copy_row_to_mat(Mat m, Row r, size_t row);
 extern void print_mat(Mat m);
 extern Mat mat_nrows(Mat m, size_t row_from, size_t row_to);
 extern void rand_mat(Mat m, float min, float max);
 extern void sum_mat_scalar(Mat m, float scalar);
-// extern void free_mat(Mat *m);
 
-// extern Row row_alloc(size_t cols);
 extern Row sum_rows(Row r1, Row r2);
 extern void sum_row_scalar(Row r, float scalar);
 extern Mat row_as_mat(Row r);
-extern Row mat_row(Mat m, size_t row);
-extern size_t array_max(size_t *r, size_t size);
 extern void rand_row(Row r, float min, float max);
-// extern void row_fill(Row r, float x);
 extern void print_row(Row r, const char *end);
 extern Row row_slice(Row r, size_t from, size_t to);
-// extern void free_row(Row *r);
 
 extern NN nn_alloc(size_t *arch, size_t arch_layers, actf_t af);
 extern void rand_nn(NN nn, float min, float max);
