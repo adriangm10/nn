@@ -268,9 +268,6 @@ void nn_train(NN nn, size_t batch_size, Mat t, float lr, float *cost){
     for(size_t i = 0; i < t.rows; i += batch_size){
         size_t to = i + batch_size - 1 > t.rows ? t.rows - 1: i + batch_size - 1;
         Mat batch = mat_nrows(t, i, to);
-        // printf("%zu, %zu, %zu\n", t.rows, i, to);
-        // print_mat(batch);
-        // printf("\n");
 
         NN g = nn_backprop(nn, batch);
         nn_learn(nn, g, lr);
@@ -290,4 +287,59 @@ void free_nn(NN *nn){
     nn->arch = NULL;
     free(nn->ws);
     free(nn->as);
+}
+
+// arch_layers (size_t)
+// arch array of length arch_layers (*size_t)
+// activation function (actf_t)
+// bias (row of arch_layers - 1 floats)
+// weights (matrix of arch_layers - 1 floats)
+void save_nn(NN nn, const char *file_name){
+    FILE *f = fopen(file_name, "w");
+    assert(f && "could not open or create the file");
+
+    fwrite(&nn.arch_layers, sizeof(nn.arch_layers), 1, f);
+    fwrite(nn.arch, sizeof(*nn.arch), nn.arch_layers, f);
+    fwrite(&nn.af, sizeof(nn.af), 1, f);
+
+    fwrite(nn.bias.elems, sizeof(*nn.bias.elems), nn.bias.cols, f);
+    print_row(nn.bias, "\n");
+    printf("\n");
+
+    for(int i = 0; i < nn.arch_layers - 1; ++i){
+        fwrite(nn.ws[i].elems, sizeof(*nn.ws[i].elems), nn.ws[i].cols * nn.ws[i].rows, f);
+        print_mat(nn.ws[i]);
+        printf("\n");
+    }
+
+    fclose(f);
+}
+
+//if this function is used, is necessary to manually free the nn.arch array
+NN load_nn(const char *file_name){
+    NN nn;
+
+    FILE *f = fopen(file_name, "r");
+    assert(f && "could not open the file");
+
+    fread(&nn.arch_layers, sizeof(nn.arch_layers), 1, f);
+
+    size_t *arch = (size_t *) malloc(sizeof(size_t) * nn.arch_layers);
+    fread(arch, sizeof(*arch), nn.arch_layers, f);
+
+    fread(&nn.af, sizeof(nn.af), 1, f);
+    nn = nn_alloc(arch, nn.arch_layers, nn.af);
+
+    fread(nn.bias.elems, sizeof(*nn.bias.elems), nn.bias.cols, f);
+    print_row(nn.bias, "\n");
+    printf("\n");
+
+    for(int i = 0; i < nn.arch_layers - 1; ++i){
+        fread(nn.ws[i].elems, sizeof(*nn.ws[i].elems), nn.ws[i].cols * nn.ws[i].rows, f);
+        print_mat(nn.ws[i]);
+        printf("\n");
+    }
+
+    fclose(f);
+    return nn;
 }

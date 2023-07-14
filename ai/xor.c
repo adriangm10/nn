@@ -5,9 +5,9 @@
 #define error(msg) {fprintf(stderr, "%s", msg); exit(EXIT_FAILURE);}
 #define WIDTH 800
 #define HEIGHT WIDTH
-#define RED {255, 0, 0, SDL_ALPHA_OPAQUE}
-#define WHITE {255, 255, 255, SDL_ALPHA_OPAQUE}
-#define ORANGE {255, 128, 0, SDL_ALPHA_OPAQUE}
+#define RED (SDL_Color) {255, 0, 0, SDL_ALPHA_OPAQUE}
+#define WHITE (SDL_Color) {255, 255, 255, SDL_ALPHA_OPAQUE}
+#define ORANGE (SDL_Color) {255, 128, 0, SDL_ALPHA_OPAQUE}
 
 // const int MAX_EPOCHS = __INT_MAX__ / 100;
 #define MAX_EPOCHS 1000 * 100
@@ -26,6 +26,7 @@ bool check_xor(NN nn){
     for(int i = 0; i < 4; i++){
         nn_forward(nn, row_slice(mat_row(t, i), 0, NN_INPUT_COLS(nn) - 1));
         ok &= roundf(ROW_AT(NN_OUTPUT(nn), 0)) == MAT_AT(t, i, 2);
+        print_row(NN_OUTPUT(nn), "\n");
     }
     free_mat(&t);
     return ok;
@@ -47,7 +48,7 @@ int main(void){
 
     SDL_Window *win = SDL_CreateWindow("xor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, 0);
     SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE); // SDL_RENDERER_ACCELERATED
-
+    SDL_RenderPresent(renderer);
 
 
     size_t xor_arch[] = {2, 2, 1};
@@ -76,10 +77,11 @@ int main(void){
 
     Plot loss = new_plot();
     loss.font = font;
-    loss.fc = (SDL_Color) WHITE;
-    loss.pc = (SDL_Color) ORANGE;
+    loss.fc = WHITE;
+    loss.pc = ORANGE;
 
     bool running = true;
+    bool pause = false;
     uint i = 0;
     while (running) {
         SDL_Event event;
@@ -89,11 +91,22 @@ int main(void){
                 case SDL_QUIT:
                     running = false;
                     break;
+                case SDL_KEYDOWN:
+                    if(event.key.keysym.sym == SDLK_s){
+                        pause = true;
+                        save_nn(xor_nn, "xor_nn");
+                    }
+                    else if(event.key.keysym.sym == SDLK_l){
+                        free_nn(&xor_nn);
+                        xor_nn = load_nn("xor_nn");
+                        check_xor(xor_nn);
+                    }
+                    break;
             }
         }
 
         size_t frame_epoch = 0;
-        for(; i < MAX_EPOCHS && frame_epoch < 50; i++, frame_epoch++){
+        for(; i < MAX_EPOCHS && frame_epoch < 50 && !pause; i++, frame_epoch++){
             nn_train(xor_nn, 2, xor, lr, &xor_cost);
 
             append(&loss.data, xor_cost);

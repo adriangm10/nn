@@ -5,9 +5,9 @@
 #define error(msg) {fprintf(stderr, "%s", msg); exit(EXIT_FAILURE);}
 #define WIDTH 800
 #define HEIGHT 600
-#define RED {255, 0, 0, SDL_ALPHA_OPAQUE}
-#define WHITE {255, 255, 255, SDL_ALPHA_OPAQUE}
-#define ORANGE {255, 128, 0, SDL_ALPHA_OPAQUE}
+#define RED (SDL_Color) {255, 0, 0, SDL_ALPHA_OPAQUE}
+#define WHITE (SDL_Color) {255, 255, 255, SDL_ALPHA_OPAQUE}
+#define ORANGE (SDL_Color) {255, 128, 0, SDL_ALPHA_OPAQUE}
 #define MAX_EPOCH 1000000
 
 
@@ -36,8 +36,8 @@ int main(void){
 
     Plot loss = new_plot();
     loss.font = font;
-    loss.fc = (SDL_Color) WHITE;
-    loss.pc = (SDL_Color) ORANGE;
+    loss.fc = WHITE;
+    loss.pc = ORANGE;
 
     SDL_Rect num_rect = {
         .x = WIDTH / 2 + 50,
@@ -97,7 +97,7 @@ int main(void){
                                 }
                             }
                             snprintf(buff, sizeof(buff), "guess: %2d, prob: %.4f", out, max);
-                            SDL_Surface *text = TTF_RenderText_Solid(font, buff, (SDL_Color) WHITE);
+                            SDL_Surface *text = TTF_RenderText_Solid(font, buff, WHITE);
                             SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, text);
                             out_rect.w = text->w; out_rect.h = text->h;
                             SDL_RenderCopy(renderer, texture, NULL, &out_rect);

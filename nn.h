@@ -22,9 +22,6 @@ typedef struct {
     actf_t af;
 }NN;
 
-// #define MAT_AT(m, i, j) m.elems[i * m.cols + j]
-// #define ROW_AT(r, i) r.elems[i]
-// #define ARRAY_LEN(x) sizeof(x) / sizeof(x[0])
 #define NN_INPUT_COLS(nn) nn.arch[0]
 #define NN_OUTPUT_COLS(nn) nn.arch[nn.arch_layers-1]
 #define NN_OUTPUT(nn) nn.as[nn.arch_layers-1]
@@ -60,5 +57,7 @@ extern NN nn_backprop(NN nn, Mat t);
 extern void nn_learn(NN nn, NN g, float lr);
 extern void nn_train(NN nn, size_t batch_size, Mat t, float lr, float *cost);
 extern void free_nn(NN *nn);
+extern void save_nn(NN nn, const char *file_name);
+extern NN load_nn(const char *file_name);
 
 #endif
