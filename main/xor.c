@@ -23,11 +23,13 @@ bool check_xor(NN nn){
             MAT_AT(t, row, 2) = i ^ j;
         }
     }
+
     for(int i = 0; i < 4; i++){
         nn_forward(nn, row_slice(mat_row(t, i), 0, NN_INPUT_COLS(nn) - 1));
         ok &= roundf(ROW_AT(NN_OUTPUT(nn), 0)) == MAT_AT(t, i, 2);
         print_row(NN_OUTPUT(nn), "\n");
     }
+    printf("loss: %f\n", nn_loss(nn, t));
     free_mat(&t);
     return ok;
 }
@@ -80,6 +82,7 @@ int main(void){
     loss.fc = WHITE;
     loss.pc = ORANGE;
 
+    bool loaded = false;
     bool running = true;
     bool pause = false;
     uint i = 0;
@@ -92,14 +95,23 @@ int main(void){
                     running = false;
                     break;
                 case SDL_KEYDOWN:
-                    if(event.key.keysym.sym == SDLK_s){
-                        pause = true;
-                        save_nn(xor_nn, "xor_nn");
-                    }
-                    else if(event.key.keysym.sym == SDLK_l){
-                        free_nn(&xor_nn);
-                        xor_nn = load_nn("xor_nn");
-                        check_xor(xor_nn);
+                    switch (event.key.keysym.sym) {
+                        case SDLK_s:
+                            pause = true;
+                            save_nn(xor_nn, "AI/xor_nn");
+                            break;
+                        case SDLK_l:
+                            free_nn(&xor_nn);
+                            xor_nn = load_nn("AI/xor_nn");
+                            loaded = true;
+                            break;
+                        case SDLK_c:
+                            check_xor(xor_nn);
+                            break;
+                        case SDLK_SPACE:
+                            pause = !pause;
+                            break;
+
                     }
                     break;
             }
@@ -108,17 +120,18 @@ int main(void){
         size_t frame_epoch = 0;
         for(; i < MAX_EPOCHS && frame_epoch < 50 && !pause; i++, frame_epoch++){
             nn_train(xor_nn, 2, xor, lr, &xor_cost);
-
             append(&loss.data, xor_cost);
             plot_loss(renderer, plot_rect, loss);
-
-            SDL_RenderPresent(renderer);
         }
+        plot_loss(renderer, plot_rect, loss);
+
+        SDL_RenderPresent(renderer);
         fill(renderer, (SDL_Color) {0, 0, 0, 255});
     }
 
     free_mat(&xor);
     free_nn(&xor_nn);
+    if(loaded) free(xor_nn.arch);
     free_vec(&loss.data);
     SDL_DestroyWindow(win);
     SDL_DestroyRenderer(renderer);

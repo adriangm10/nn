@@ -303,13 +303,9 @@ void save_nn(NN nn, const char *file_name){
     fwrite(&nn.af, sizeof(nn.af), 1, f);
 
     fwrite(nn.bias.elems, sizeof(*nn.bias.elems), nn.bias.cols, f);
-    print_row(nn.bias, "\n");
-    printf("\n");
 
     for(int i = 0; i < nn.arch_layers - 1; ++i){
         fwrite(nn.ws[i].elems, sizeof(*nn.ws[i].elems), nn.ws[i].cols * nn.ws[i].rows, f);
-        print_mat(nn.ws[i]);
-        printf("\n");
     }
 
     fclose(f);
@@ -331,13 +327,9 @@ NN load_nn(const char *file_name){
     nn = nn_alloc(arch, nn.arch_layers, nn.af);
 
     fread(nn.bias.elems, sizeof(*nn.bias.elems), nn.bias.cols, f);
-    print_row(nn.bias, "\n");
-    printf("\n");
 
     for(int i = 0; i < nn.arch_layers - 1; ++i){
         fread(nn.ws[i].elems, sizeof(*nn.ws[i].elems), nn.ws[i].cols * nn.ws[i].rows, f);
-        print_mat(nn.ws[i]);
-        printf("\n");
     }
 
     fclose(f);
