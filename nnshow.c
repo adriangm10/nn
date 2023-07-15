@@ -94,6 +94,20 @@ void draw_mnist(SDL_Renderer *renderer, Row img, SDL_Rect r){
 void fill(SDL_Renderer *renderer, SDL_Color color){
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderClear(renderer);
-    // SDL_RenderPresent(renderer);
 }
 
+int drawable_canvas(SDL_Renderer *renderer, int click_x, int click_y, SDL_Rect r, float pixel_size){
+    if(click_x > r.x + r.w || click_x < r.x) return -1;
+    if(click_y > r.y + r.h || click_y < r.y) return -1;
+
+    SDL_FRect pixel = {
+        .x = (float) click_x - pixel_size / 2.0f,
+        .y = (float) click_y - pixel_size / 2.0f,
+        .h = pixel_size,
+        .w = pixel_size,
+    };
+
+    SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
+    SDL_RenderFillRectF(renderer, &pixel);
+    return 0;
+}

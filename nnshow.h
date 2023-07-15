@@ -35,5 +35,6 @@ extern void free_vec(Vector *v);
 extern void plot_loss(SDL_Renderer *renderer, SDL_Rect rect, Plot plot);
 extern void draw_mnist(SDL_Renderer *renderer, Row img, SDL_Rect r);
 extern void fill(SDL_Renderer *renderer, SDL_Color color);
+extern int drawable_canvas(SDL_Renderer *renderer, int click_x, int click_y, SDL_Rect r, float pixel_size);
 
 #endif

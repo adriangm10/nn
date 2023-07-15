@@ -63,6 +63,15 @@ int main(void){
         .h = 112,
     };
 
+    SDL_Rect canvas = {
+        .x = WIDTH / 2 + 50,
+        .y = HEIGHT * 3 / 4,
+        .w = 112,
+        .h = 112,
+    };
+    Row canvas_img = row_alloc(IMG_SIZE);
+    row_fill(canvas_img, 0.0f);
+
     // SDL_Rect loss_pos = {
     //     .x = 10,
     //     .y = HEIGHT / 4,
@@ -79,6 +88,11 @@ int main(void){
     // NN nn = nn_alloc(arch, ARRAY_LEN(arch), SIGMOID);
     // rand_nn(nn, -1.0f, 1.0f);
     NN nn = load_nn("AI/mnist_nn");
+
+    res out;
+    char buff[24];
+    SDL_Surface *text;
+    SDL_Texture *texture;
 
     int img = 0;
     // float cost = 0.0f;
@@ -102,13 +116,12 @@ int main(void){
                             img = rand_float(0, test_to - 1);
                             draw_mnist(renderer, mat_row(test, img), num_rect);
 
-                            res out = mnist_output(nn, row_slice(mat_row(test, img), 0, NN_INPUT_COLS(nn) - 1));
+                            out = mnist_output(nn, row_slice(mat_row(test, img), 0, NN_INPUT_COLS(nn) - 1));
                             // print_row(NN_OUTPUT(nn), "\n");
 
-                            char buff[24];
                             snprintf(buff, sizeof(buff), "guess: %2d, prob: %.4f", out.out, out.prob);
-                            SDL_Surface *text = TTF_RenderText_Solid(font, buff, WHITE);
-                            SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, text);
+                            text = TTF_RenderText_Solid(font, buff, WHITE);
+                            texture = SDL_CreateTextureFromSurface(renderer, text);
                             out_rect.w = text->w; out_rect.h = text->h;
                             SDL_RenderCopy(renderer, texture, NULL, &out_rect);
 
@@ -116,7 +129,7 @@ int main(void){
                             SDL_RenderPresent(renderer);
                             SDL_DestroyTexture(texture);
                             SDL_FreeSurface(text);
-                            fill(renderer, BLACK);
+                            //fill(renderer, BLACK);
                             break;
                         case SDLK_SPACE:
                             pause = !pause;
@@ -126,12 +139,45 @@ int main(void){
                             save_nn(nn, "AI/mnist_nn");
                             break;
                         case SDLK_t:
-                            printf("train: %f, test: %f\n",nn_loss(nn, t), nn_loss(nn, test));
+                            printf("train: %f, test: %f\n", 1 - nn_loss(nn, t), 1 - nn_loss(nn, test));
+                            break;
+                        case SDLK_c:
+                            row_fill(canvas_img, 0.0f);
+                            SDL_SetRenderDrawColor(renderer, BLACK.r, BLACK.g, BLACK.b, BLACK.a);
+                            SDL_RenderFillRect(renderer, &canvas);
+                            break;
+                        case SDLK_RETURN:
+                            out = mnist_output(nn, canvas_img);
+                            snprintf(buff, sizeof(buff), "guess: %2d, prob: %.4f", out.out, out.prob);
+                            text = TTF_RenderText_Solid(font, buff, WHITE);
+                            texture = SDL_CreateTextureFromSurface(renderer, text);
+                            SDL_Rect res_rect = {.x = canvas.x, .y = canvas.y + canvas.h, .h = text->h, .w = text->w};
+
+                            SDL_SetRenderDrawColor(renderer, BLACK.r, BLACK.g, BLACK.b, BLACK.a);
+                            SDL_RenderFillRect(renderer, &res_rect);
+
+                            SDL_RenderCopy(renderer, texture, NULL, &res_rect);
+                            SDL_RenderPresent(renderer);
+                            SDL_DestroyTexture(texture);
+                            SDL_FreeSurface(text);
                             break;
                     }
+                    break;
             }
         }
 
+        // if(event.button.button != SDL_BUTTON_LEFT) break;
+        // int x = event.button.x;
+        // int y = event.button.y;
+        int x, y;
+        Uint32 button = SDL_GetMouseState(&x, &y);
+        if(SDL_BUTTON(button) == SDL_BUTTON_LEFT){
+            if(drawable_canvas(renderer, x, y, canvas, ((float) 112 / 28)) == 0){
+                size_t index = ((y - canvas.y) / 4) * IMG_SIDE + ((x - canvas.x) / 4);
+                if(index < canvas_img.cols)
+                    ROW_AT(canvas_img, index) = 255.0f;
+            }
+        }
 
         // if(!pause){
         //     nn_train(nn, 100, t, lr, &cost);
@@ -140,6 +186,10 @@ int main(void){
         //     SDL_RenderPresent(renderer);
         //     fill(renderer, (SDL_Color) {0, 0, 0, 255});
         // }
+
+        SDL_SetRenderDrawColor(renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a);
+        SDL_RenderDrawRect(renderer, &canvas);
+        SDL_RenderPresent(renderer);
     }
 
     SDL_DestroyWindow(win);
@@ -150,6 +200,7 @@ int main(void){
     free_mat(&t);
     free_mat(&test);
     free_vec(&loss.data);
+    free_row(&canvas_img);
     TTF_Quit();
     SDL_Quit();
     exit(0);
