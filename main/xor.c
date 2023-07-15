@@ -5,9 +5,6 @@
 #define error(msg) {fprintf(stderr, "%s", msg); exit(EXIT_FAILURE);}
 #define WIDTH 800
 #define HEIGHT WIDTH
-#define RED (SDL_Color) {255, 0, 0, SDL_ALPHA_OPAQUE}
-#define WHITE (SDL_Color) {255, 255, 255, SDL_ALPHA_OPAQUE}
-#define ORANGE (SDL_Color) {255, 128, 0, SDL_ALPHA_OPAQUE}
 
 // const int MAX_EPOCHS = __INT_MAX__ / 100;
 #define MAX_EPOCHS 1000 * 100

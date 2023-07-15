@@ -7,6 +7,11 @@
 #include "utils.h"
 #include "mnist.h"
 
+#define RED (SDL_Color) {255, 0, 0, 255}
+#define WHITE (SDL_Color) {255, 255, 255, 255}
+#define ORANGE (SDL_Color) {255, 128, 0, 255}
+#define BLACK (SDL_Color) {0, 0, 0, 255}
+
 typedef struct {
     uint size;
     uint limit;

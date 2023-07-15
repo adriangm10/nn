@@ -21,8 +21,8 @@ ${EXECMNIST}: ${OBJS} ${HDRS} Makefile
 xor: main/xor.c
 		${CC} -o $@ ${OBJS} main/xor.c ${MAINXOR} ${FLAGS}
 
-mnist: main/mnist_ai.c
-		${CC} -o $@ ${OBJS} main/mnist_ai.c ${MAINMNIST} ${FLAGS}
+mnist: main/mnist_nn.c
+		${CC} -o $@ ${OBJS} main/mnist_nn.c ${MAINMNIST} ${FLAGS}
 
 
 # ${OBJS}: ${@:.o=.c} ${HDRS} Makefile
