@@ -149,14 +149,14 @@ NN nn_alloc(size_t *arch, size_t arch_layers, actf_t af){
     nn.arch_layers = arch_layers;
     nn.af = af;
     nn.ws = (Mat *) malloc((arch_layers - 1) * sizeof(Mat));
-    nn.as = (Row *) malloc(arch_layers * sizeof(Row));
-    assert(nn.ws != NULL && nn.as != NULL);
+    nn.nodes = (Row *) malloc(arch_layers * sizeof(Row));
+    assert(nn.ws != NULL && nn.nodes != NULL);
 
     nn.bias = row_alloc(arch_layers - 1);
-    nn.as[0] = row_alloc(arch[0]);
+    nn.nodes[0] = row_alloc(arch[0]);
     for(size_t i = 1; i < arch_layers; i++){
         nn.ws[i-1] = mat_alloc(arch[i-1], arch[i]);
-        nn.as[i] = row_alloc(arch[i]);
+        nn.nodes[i] = row_alloc(arch[i]);
     }
     return nn;
 }
@@ -169,20 +169,20 @@ void rand_nn(NN nn, float min, float max){
 }
 
 void nn_zeros(NN nn){
-    row_fill(nn.as[0], 0.0f);
+    row_fill(nn.nodes[0], 0.0f);
     row_fill(nn.bias, 0.0f);
     for(size_t i = 1; i < nn.arch_layers; i++){
         mat_fill(nn.ws[i-1], 0.0f);
-        row_fill(nn.as[i], 0.0f);
+        row_fill(nn.nodes[i], 0.0f);
     }
 }
 
 void nn_forward(NN nn, Row input){
-    copy_row(input, nn.as[0]);
+    copy_row(input, nn.nodes[0]);
     for(size_t i = 0; i < nn.arch_layers - 1; i++){
-        mul_mat(row_as_mat(nn.as[i]), nn.ws[i], row_as_mat(nn.as[i+1]));
-        sum_row_scalar(nn.as[i+1], ROW_AT(nn.bias, i));
-        act_row(nn.as[i+1], nn.af);
+        mul_mat(row_as_mat(nn.nodes[i]), nn.ws[i], row_as_mat(nn.nodes[i+1]));
+        sum_row_scalar(nn.nodes[i+1], ROW_AT(nn.bias, i));
+        act_row(nn.nodes[i+1], nn.af);
     }
 }
 
@@ -217,7 +217,7 @@ NN nn_backprop(NN nn, Mat t){
         nn_forward(nn, in);
 
         for(size_t l = 0; l < g.arch_layers; l++){
-            row_fill(g.as[l], 0.0f);
+            row_fill(g.nodes[l], 0.0f);
         }
 
         for(size_t j = 0; j < NN_OUTPUT_COLS(nn); j++){
@@ -226,13 +226,13 @@ NN nn_backprop(NN nn, Mat t){
 
         for(size_t l = nn.arch_layers - 1; l > 0; l--){
             for(size_t j = 0; j < nn.arch[l]; j++){
-                float de = ROW_AT(g.as[l], j);
-                float da = dactf(ROW_AT(nn.as[l], j), nn.af);
+                float de = ROW_AT(g.nodes[l], j);
+                float da = dactf(ROW_AT(nn.nodes[l], j), nn.af);
                 ROW_AT(g.bias, l-1) += da * de;
                 for(size_t k = 0; k < nn.arch[l-1]; k++){
-                    float a = ROW_AT(nn.as[l-1], k);
+                    float a = ROW_AT(nn.nodes[l-1], k);
                     float w = MAT_AT(nn.ws[l-1], k, j);
-                    ROW_AT(g.as[l-1], k) += w * da * de;
+                    ROW_AT(g.nodes[l-1], k) += w * da * de;
                     MAT_AT(g.ws[l-1], k, j) += a * da * de;
                 }
             }
@@ -264,7 +264,7 @@ void nn_learn(NN nn, NN g, float lr){
 }
 
 void nn_train(NN nn, size_t batch_size, Mat t, float lr, float *cost){
-    assert(NN_INPUT_COLS(nn) + NN_OUTPUT_COLS(nn) == t.cols && cos != NULL);
+    assert(NN_INPUT_COLS(nn) + NN_OUTPUT_COLS(nn) == t.cols && cost);
     for(size_t i = 0; i < t.rows; i += batch_size){
         size_t to = i + batch_size - 1 > t.rows ? t.rows - 1: i + batch_size - 1;
         Mat batch = mat_nrows(t, i, to);
@@ -277,16 +277,16 @@ void nn_train(NN nn, size_t batch_size, Mat t, float lr, float *cost){
 }
 
 void free_nn(NN *nn){
-    free_row(&nn->as[0]);
+    free_row(&nn->nodes[0]);
     for(size_t i = 1; i < nn->arch_layers; i++){
         free_mat(&nn->ws[i-1]);
-        free_row(&nn->as[i]);
+        free_row(&nn->nodes[i]);
     }
     free_row(&nn->bias);
     nn->arch_layers = 0;
     nn->arch = NULL;
     free(nn->ws);
-    free(nn->as);
+    free(nn->nodes);
 }
 
 // arch_layers (size_t)
@@ -335,3 +335,4 @@ NN load_nn(const char *file_name){
     fclose(f);
     return nn;
 }
+

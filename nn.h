@@ -18,14 +18,14 @@ typedef struct {
 
     Mat *ws;
     Row bias;
-    Row *as;
+    Row *nodes;
     actf_t af;
 }NN;
 
 #define NN_INPUT_COLS(nn) nn.arch[0]
 #define NN_OUTPUT_COLS(nn) nn.arch[nn.arch_layers-1]
-#define NN_OUTPUT(nn) nn.as[nn.arch_layers-1]
-#define NN_INPUT(nn) nn.as[0]
+#define NN_OUTPUT(nn) nn.nodes[nn.arch_layers-1]
+#define NN_INPUT(nn) nn.nodes[0]
 
 extern float sigf(float x);
 extern float reluf(float x);

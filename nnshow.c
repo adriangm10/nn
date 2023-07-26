@@ -50,11 +50,11 @@ void plot_loss(SDL_Renderer *renderer, SDL_Rect rect, Plot p){
     };
     SDL_RenderCopy(renderer, text_texture, NULL, &cost_rect);
 
-    // float max = __FLT_MIN__;
-    // for(uint i = 0; i < plot_size(p); i++){
-    //     if(plot_data(p)[i] > max) max = plot_data(p)[i];
-    // }
-    float max = plot_data(p)[0];
+    float max = __FLT_MIN__;
+    for(uint i = 0; i < plot_size(p); i++){
+        if(plot_data(p)[i] > max) max = plot_data(p)[i];
+    }
+    // float max = plot_data(p)[0];
 
     float n = plot_size(p) > 1000 ? (float) plot_size(p) : 1000.0f;
 
