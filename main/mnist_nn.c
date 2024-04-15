@@ -1,6 +1,7 @@
 #include "../nn.h"
 #include "../mnist.h"
 #include "../nnshow.h"
+#include <SDL2/SDL_render.h>
 #include <time.h>
 
 #define error(msg) {fprintf(stderr, "%s", msg); exit(EXIT_FAILURE);}
@@ -115,6 +116,8 @@ int main(void){
                             if(!pause) break;
                             img = rand_float(0, test_to - 1);
                             draw_mnist(renderer, mat_row(test, img), num_rect);
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                            SDL_RenderFillRect(renderer, &out_rect);
 
                             out = mnist_output(nn, row_slice(mat_row(test, img), 0, NN_INPUT_COLS(nn) - 1));
                             // print_row(NN_OUTPUT(nn), "\n");
